@@ -1,3 +1,17 @@
+<script lang="ts">
+	import type { HTMLAttributes } from 'svelte/elements';
+	import type { MaterialSymbolName } from './types/material-symbols.js';
+	let {
+		iconName,
+		type,
+		class: className
+	}: {
+		iconName: MaterialSymbolName;
+		type: 'outlined' | 'rounded' | 'sharp';
+		class?: HTMLAttributes<HTMLSpanElement>['class'];
+	} = $props();
+</script>
+
 <!-- 
 @component
 iconName is name of the Material Symbol to display
@@ -11,18 +25,7 @@ This component also uses the following style props:
 --size: the font-size of the icon's font; default is 24px
 
 -->
-<script lang="ts">
-	import type { MaterialSymbolName } from './material-symbols.js';
-	let {
-		iconName,
-		type
-	}: {
-		iconName: MaterialSymbolName;
-		type: 'outlined' | 'rounded' | 'sharp';
-	} = $props();
-</script>
-
-<span class="material-symbols-{type}">
+<span class="material-symbols-{type} {className}">
 	{iconName}
 </span>
 

@@ -9,54 +9,42 @@ const sviconHeaderTypeMap = new Map([
     ['sharp', 'Material+Symbols+Sharp'],
 ])
 
-/**
- * 
- * @param {string} content
- * @param {Map<string, string[]>} sviconMap
- * @returns {string}
- */
-function buildHeader(content, sviconMap) {
+function buildHeader(content: string, sviconMap: Map<string, string[]>): string {
     let head = `<svelte:head></svelte:head>`;
-    if (svelteHeadRegex.test(content)) {
-        head = content.match(svelteHeadRegex)[0];
-        content = content.replace(svelteHeadRegex, '');
-    }
+    const headMatch = content.match(svelteHeadRegex);
+    head = headMatch ? headMatch[0] : head;
+    content = content.replace(svelteHeadRegex, '');
     let links = '';
     let headSplit = head.split('</svelte:head>');
     for (const [type, icons] of sviconMap.entries()) {
         const iconStr = `&${icons.join(',')}`
-        links += `<link href="https://fonts.googleapis.com/css2?family=${sviconHeaderTypeMap.get(type)}${iconStr}" rel="stylesheet" />\n`
+        links += `<link href="https://fonts.googleapis.com/css2?family=${sviconHeaderTypeMap.get(type)}${iconStr}&display=block" rel="stylesheet" />\n`
     }
     let newContent = `${headSplit.join(links + '</svelte:head>')}\n${content}`;
 
     return newContent;
 }
 
-
-/**
- * 
- * @returns {import('svelte/compiler').PreprocessorGroup}
- */
-export const sveltePlugin = () => ({
+export const sveltePlugin = ({ mode = "css-link" }: { mode: 'css-link' | 'local-cache'; }): import('svelte/compiler').PreprocessorGroup => ({
     name: 'svicon',
     markup({ content, filename }) {
         if (sviconRegex.test(content)) {
 
-            /**
-             * @type {Map<string, string[]>}
-             */
-            let sviconMap = new Map();
+            let sviconMap: Map<string, string[]> = new Map();
 
             let sviconMatches = content.matchAll(sviconRegex);
             for (const match of sviconMatches) {
-                const iconPropMatch = match[0].matchAll(iconPropertyRegex);
-                const typePropMatch = match[0].matchAll(typePropertyRegex);
-                const iconProp = iconPropMatch.next().value[1];
-                const typeProp = typePropMatch.next().value[1];
+                const iconPropMatch = match[0].match(iconPropertyRegex);
+                const typePropMatch = match[0].match(typePropertyRegex);
+                const iconProp = iconPropMatch ? iconPropMatch[1] : '';
+                if (!iconProp) {
+                    throw new Error('Svicon Error: Icon name is required');
+                }
+                const typeProp = typePropMatch ? typePropMatch[1] : 'outlined';
                 if (!sviconMap.has(typeProp)) {
                     sviconMap.set(typeProp, [iconProp]);
                 } else {
-                    sviconMap.get(typeProp).push(iconProp);
+                    sviconMap.get(typeProp)!.push(iconProp);
                 }
             }
 

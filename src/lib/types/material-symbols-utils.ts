@@ -1,0 +1,1 @@
+export type MaterialSymbolType = 'outlined' | 'rounded' | 'sharp';
